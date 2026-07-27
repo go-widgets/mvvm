@@ -57,11 +57,25 @@ mvvm.BindList(vm.Names, &list.Items, func(s string) string { return s }, repaint
 
 The **same `FormVM`** drives the pixel and the cell form verbatim.
 
+## Backend adapters
+
+The core package binds any widget whose value + change-callback fit
+`(&field, &hook)`. Widgets with a **multi-argument** or oddly-named callback get
+a small named adapter in a per-backend subpackage — the **only** packages that
+import a backend:
+
+- **`mvvm/tkbind`** (imports `toolkit`) — `BindRange` for the two-handle
+  `RangeSlider` (`OnChange(low, high)`).
+- **`mvvm/tuibind`** (imports `tui`) — `BindDropdown` (`OnChange(idx, value)`)
+  and `BindTableSelection` (`OnSelect(row)`).
+
+The core `mvvm` package itself still imports nothing (verified with
+`go list -deps`), so a consumer who only wants observables/commands pays for no
+backend.
+
 ## Status
 
-Core module (`v0.1.0`). Per-backend convenience adapters for multi-argument or
-hook-less widgets (a two-handle range slider, a passive table) will live in
-`mvvm/tkbind` and `mvvm/tuibind` — the only packages that import a backend.
+`v0.2.0`: core + `tkbind` + `tuibind`, all 100% coverage.
 
 ## License
 
