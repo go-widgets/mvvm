@@ -65,7 +65,9 @@ a small named adapter in a per-backend subpackage — the **only** packages that
 import a backend:
 
 - **`mvvm/tkbind`** (imports `toolkit`) — `BindRange` for the two-handle
-  `RangeSlider` (`OnChange(low, high)`).
+  `RangeSlider` (`OnChange(low, high)`), plus `BindContainer` /
+  `BindCardActive` to drive a `toolkit.Container` / `CardLayout` from an
+  `ObservableList` / `Observable` (data-driven views).
 - **`mvvm/tuibind`** (imports `tui`) — `BindDropdown` (`OnChange(idx, value)`)
   and `BindTableSelection` (`OnSelect(row)`).
 
@@ -75,7 +77,8 @@ backend.
 
 ## Status
 
-`v0.2.0`: core + `tkbind` + `tuibind`, all 100% coverage.
+`v0.3.0`: core + `tkbind` (incl. `BindContainer` / `BindCardActive`) +
+`tuibind`, all 100% coverage.
 
 ## License
 
