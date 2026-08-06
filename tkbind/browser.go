@@ -23,9 +23,12 @@ type BrowserVM struct {
 	CanBack    *mvvm.Observable[bool]
 	CanForward *mvvm.Observable[bool]
 	TabCount   *mvvm.Observable[int]
+	Zoom       *mvvm.Observable[float64]
 	Back       *mvvm.Command
 	Forward    *mvvm.Command
 	Reload     *mvvm.Command
+	ZoomIn     *mvvm.Command
+	ZoomOut    *mvvm.Command
 }
 
 // BindBrowser builds a BrowserVM bound to b and returns it with an unbind func.
@@ -43,10 +46,13 @@ func BindBrowser(b *toolkit.Browser, invalidate func()) (*BrowserVM, func()) {
 		CanBack:    mvvm.NewObservable(false),
 		CanForward: mvvm.NewObservable(false),
 		TabCount:   mvvm.NewObservable(0),
+		Zoom:       mvvm.NewObservable(0.0),
 	}
 	vm.Back = mvvm.NewCommand(b.Back, b.CanBack)
 	vm.Forward = mvvm.NewCommand(b.Forward, b.CanForward)
 	vm.Reload = mvvm.NewCommand(b.Reload, func() bool { return b.CurrentURL() != "" })
+	vm.ZoomIn = mvvm.NewCommand(b.ZoomIn, b.CanZoomIn)
+	vm.ZoomOut = mvvm.NewCommand(b.ZoomOut, b.CanZoomOut)
 
 	sync := func() {
 		vm.URL.Set(b.CurrentURL())
@@ -56,9 +62,12 @@ func BindBrowser(b *toolkit.Browser, invalidate func()) (*BrowserVM, func()) {
 		vm.CanBack.Set(b.CanBack())
 		vm.CanForward.Set(b.CanForward())
 		vm.TabCount.Set(b.TabCount())
+		vm.Zoom.Set(b.Zoom())
 		vm.Back.RaiseCanExecuteChanged()
 		vm.Forward.RaiseCanExecuteChanged()
 		vm.Reload.RaiseCanExecuteChanged()
+		vm.ZoomIn.RaiseCanExecuteChanged()
+		vm.ZoomOut.RaiseCanExecuteChanged()
 		if invalidate != nil {
 			invalidate()
 		}

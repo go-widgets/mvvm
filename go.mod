@@ -3,7 +3,7 @@ module github.com/go-widgets/mvvm
 go 1.26.4
 
 require (
-	github.com/go-widgets/toolkit v0.112.0
+	github.com/go-widgets/toolkit v0.113.0
 	github.com/go-widgets/tui v0.49.0
 )
 
