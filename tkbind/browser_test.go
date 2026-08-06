@@ -87,6 +87,58 @@ func TestBindBrowser(t *testing.T) {
 	}
 }
 
+// TestBindBrowserZoom checks the zoom observable mirrors the widget and the
+// ZoomIn / ZoomOut commands drive the widget while their guards track the clamps.
+func TestBindBrowserZoom(t *testing.T) {
+	b := toolkit.NewBrowser()
+	b.OnNavigate = func(target string, width int) {}
+	vm, unbind := BindBrowser(b, nil)
+	defer unbind()
+
+	// Seeded from the widget's default zoom; mid-range → both commands enabled.
+	if vm.Zoom.Get() != 1.0 {
+		t.Fatalf("seed zoom = %v, want 1.0", vm.Zoom.Get())
+	}
+	if !vm.ZoomIn.CanExecute() || !vm.ZoomOut.CanExecute() {
+		t.Fatal("mid-range zoom → both zoom commands enabled")
+	}
+
+	// ZoomIn command drives the widget and mirrors into the observable.
+	vm.ZoomIn.Execute()
+	if b.Zoom() != 1.25 || vm.Zoom.Get() != 1.25 {
+		t.Fatalf("after ZoomIn: widget=%v obs=%v, want 1.25", b.Zoom(), vm.Zoom.Get())
+	}
+	// Drive to the max clamp: the guard tracks it, then Execute is a no-op.
+	for vm.ZoomIn.CanExecute() {
+		vm.ZoomIn.Execute()
+	}
+	if b.Zoom() != toolkit.BrowserMaxZoom || vm.Zoom.Get() != toolkit.BrowserMaxZoom {
+		t.Fatalf("after zooming in fully: widget=%v obs=%v, want %v", b.Zoom(), vm.Zoom.Get(), toolkit.BrowserMaxZoom)
+	}
+	if vm.ZoomIn.CanExecute() {
+		t.Fatal("ZoomIn command should be disabled at the max clamp")
+	}
+	vm.ZoomIn.Execute() // disabled: no-op
+	if b.Zoom() != toolkit.BrowserMaxZoom {
+		t.Fatalf("disabled ZoomIn moved zoom to %v", b.Zoom())
+	}
+
+	// ZoomOut command drives back down to the min clamp.
+	for vm.ZoomOut.CanExecute() {
+		vm.ZoomOut.Execute()
+	}
+	if b.Zoom() != toolkit.BrowserMinZoom || vm.Zoom.Get() != toolkit.BrowserMinZoom {
+		t.Fatalf("after zooming out fully: widget=%v obs=%v, want %v", b.Zoom(), vm.Zoom.Get(), toolkit.BrowserMinZoom)
+	}
+	if vm.ZoomOut.CanExecute() {
+		t.Fatal("ZoomOut command should be disabled at the min clamp")
+	}
+	vm.ZoomOut.Execute() // disabled: no-op
+	if b.Zoom() != toolkit.BrowserMinZoom {
+		t.Fatalf("disabled ZoomOut moved zoom to %v", b.Zoom())
+	}
+}
+
 // TestBindBrowserNilInvalidate covers the nil-invalidate branch (no repaint
 // callback supplied).
 func TestBindBrowserNilInvalidate(t *testing.T) {
