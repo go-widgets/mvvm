@@ -75,10 +75,49 @@ The core `mvvm` package itself still imports nothing (verified with
 `go list -deps`), so a consumer who only wants observables/commands pays for no
 backend.
 
+## Undo / redo — `mvvm/undo`
+
+A render-agnostic **undo/redo command stack**, built only on the core primitives
+(no backend), so it drives pixel and cell views alike.
+
+```go
+s := undo.New() // unlimited; coalescing on. undo.WithLimit(n) / WithCoalescing(false) to tune.
+
+doc := ""
+write := func(text string) undo.Command {
+	return undo.NewCommand("Write "+text,
+		func() { doc += text },              // Do / redo
+		func() { doc = doc[:len(doc)-len(text)] }) // Undo (exact inverse)
+}
+
+s.Push(write("hello")) // applies Do and records the step
+s.Undo()               // doc == ""
+s.Redo()               // doc == "hello"
+```
+
+- **`Command`** — `Do()` / `Undo()` / `Label()`; `Do` and `Undo` are exact
+  inverses so any Do/Undo or Undo/Redo pair round-trips state.
+- **`Stack`** — `Push` / `Undo` / `Redo`, a cursor (`Cursor` / `Len`), a
+  divergent push discards the redo tail, an optional retention `WithLimit`, and
+  **coalescing** of contiguous same-kind commands (a run of keystrokes undoes in
+  one step) via the `Coalescer` interface / `NewCoalescing`.
+- **MVVM-ready** — `UndoCommand()` / `RedoCommand()` are `mvvm.Command`s whose
+  `CanExecute` tracks availability, and `CanUndoBinding()` / `UndoTextBinding()`
+  (+ redo twins) are `mvvm.Observable`s carrying the enabled flag and the live
+  `"Undo <label>"` caption, so an Undo/Redo button or menu binds with no glue:
+
+```go
+mvvm.BindCommand(s.UndoCommand(), &undoBtn.OnClick, setEnabled)
+mvvm.OneWay(s.UndoTextBinding(), &undoBtn.Text, repaint)
+```
+
+`mvvm/undo` depends only on the dependency-free core (verified with
+`go list -deps`).
+
 ## Status
 
-`v0.3.0`: core + `tkbind` (incl. `BindContainer` / `BindCardActive`) +
-`tuibind`, all 100% coverage.
+`v0.6.0`: core + `tkbind` (incl. `BindContainer` / `BindCardActive`) +
+`tuibind` + `undo` (render-agnostic undo/redo stack), all 100% coverage.
 
 ## License
 
