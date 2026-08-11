@@ -67,7 +67,14 @@ import a backend:
 - **`mvvm/tkbind`** (imports `toolkit`) — `BindRange` for the two-handle
   `RangeSlider` (`OnChange(low, high)`), plus `BindContainer` /
   `BindCardActive` to drive a `toolkit.Container` / `CardLayout` from an
-  `ObservableList` / `Observable` (data-driven views).
+  `ObservableList` / `Observable` (data-driven views). **`BindStore` /
+  `BindTable`** (imports `github.com/go-widgets/data`) wire a `toolkit.Table` to
+  a typed `data.Store`: `BindStore` projects the store's rows into the grid and
+  refreshes on every mutation; `BindTable` drives sort (header click →
+  `Query.Sorts`), grouping (`GroupBy` → `Query.GroupBy`) and inline editing
+  (a validated cell commit → a `Record` mutation through the store's proxy, so
+  it round-trips identically over the in-process or the remote proxy — native
+  and wasm).
 - **`mvvm/tuibind`** (imports `tui`) — `BindDropdown` (`OnChange(idx, value)`)
   and `BindTableSelection` (`OnSelect(row)`).
 
@@ -116,8 +123,10 @@ mvvm.OneWay(s.UndoTextBinding(), &undoBtn.Text, repaint)
 
 ## Status
 
-`v0.6.0`: core + `tkbind` (incl. `BindContainer` / `BindCardActive`) +
-`tuibind` + `undo` (render-agnostic undo/redo stack), all 100% coverage.
+`v0.7.0`: core + `tkbind` (incl. `BindContainer` / `BindCardActive` and the
+`BindStore` / `BindTable` data-grid binders over `go-widgets/data`) + `tuibind`
++ `undo` (render-agnostic undo/redo stack), all 100% coverage. Built against
+`toolkit v0.150.0` and `data v0.1.0`.
 
 ## License
 
