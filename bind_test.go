@@ -191,3 +191,74 @@ func TestBindListRebuildsAndProjects(t *testing.T) {
 		t.Fatalf("nil-invalidate list = %v", it2)
 	}
 }
+
+func TestBindTwoWaySeedsFromSourceAndLinksBothWays(t *testing.T) {
+	src := NewObservable(7)
+	dst := NewObservable(0)
+	repaints := 0
+	unbind := BindTwoWay(src, dst, func() { repaints++ })
+
+	if dst.Get() != 7 {
+		t.Fatalf("seed: dst=%d, want 7 (src is the source of truth)", dst.Get())
+	}
+	src.Set(9)
+	if dst.Get() != 9 {
+		t.Fatalf("src→dst: dst=%d, want 9", dst.Get())
+	}
+	dst.Set(11)
+	if src.Get() != 11 {
+		t.Fatalf("dst→src: src=%d, want 11", src.Get())
+	}
+	if repaints == 0 {
+		t.Fatal("changes should have requested repaints")
+	}
+
+	unbind()
+	src.Set(1)
+	if dst.Get() != 11 {
+		t.Fatalf("after unbind src→dst still live: dst=%d", dst.Get())
+	}
+	dst.Set(2)
+	if src.Get() != 1 {
+		t.Fatalf("after unbind dst→src still live: src=%d", src.Get())
+	}
+}
+
+// TestBindTwoWayIsLoopFree pins the property the whole package rests on: the
+// echo must stop at the first hop rather than ping-pong. Counting notifications
+// is what makes that visible — asserting the values agree would pass even if
+// they had agreed after a thousand round trips.
+func TestBindTwoWayIsLoopFree(t *testing.T) {
+	src := NewObservable(0)
+	dst := NewObservable(0)
+	defer BindTwoWay(src, dst, nil)()
+
+	srcNotes, dstNotes := 0, 0
+	defer src.Subscribe(func(int) { srcNotes++ })()
+	defer dst.Subscribe(func(int) { dstNotes++ })()
+
+	src.Set(5)
+	if srcNotes != 1 || dstNotes != 1 {
+		t.Fatalf("one Set should notify each side once: src=%d dst=%d", srcNotes, dstNotes)
+	}
+	dst.Set(6)
+	if srcNotes != 2 || dstNotes != 2 {
+		t.Fatalf("the reverse Set should also settle at one: src=%d dst=%d", srcNotes, dstNotes)
+	}
+}
+
+// TestBindTwoWayNilInvalidate covers the nil-invalidate branch on both
+// directions.
+func TestBindTwoWayNilInvalidate(t *testing.T) {
+	src := NewObservable("a")
+	dst := NewObservable("z")
+	defer BindTwoWay(src, dst, nil)()
+	src.Set("b")
+	if dst.Get() != "b" {
+		t.Fatalf("src→dst with nil invalidate: dst=%q", dst.Get())
+	}
+	dst.Set("c")
+	if src.Get() != "c" {
+		t.Fatalf("dst→src with nil invalidate: src=%q", src.Get())
+	}
+}

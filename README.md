@@ -18,6 +18,10 @@ terminal-cell [`tui`](https://github.com/go-widgets/tui).
 Binding adapters reach a widget only through pointers to its value field and its
 callback slot — `BindField`, `OneWay`, `BindCommand`, `BindList`.
 
+A widget may instead expose its state AS an `Observable`, which go-widgets/toolkit
+is moving its widgets to. There is then no field to seed and no hook to compose,
+just two properties that must agree, so the adapter is symmetric: `BindTwoWay`.
+
 ## Why it's backend-agnostic
 
 `go-widgets/toolkit` and `go-widgets/tui` mirror the same field names and

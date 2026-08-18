@@ -15,55 +15,74 @@ func TestBindRangeTwoWay(t *testing.T) {
 	low := mvvm.NewObservable(10.0)
 	high := mvvm.NewObservable(90.0)
 	rs := toolkit.NewRangeSlider(0, 100, 0, 0)
-	priorCalls := 0
-	rs.OnChange = func(lo, hi float64) { priorCalls++ } // pre-existing handler
 	repaints := 0
 	unbind := BindRange(low, high, rs, func() { repaints++ })
 
-	// Seeded from the observables.
-	if rs.Low != 10 || rs.High != 90 {
-		t.Fatalf("seed: Low=%v High=%v, want 10/90", rs.Low, rs.High)
+	// Seeded from the observables: the ViewModel wins over the band the slider
+	// was constructed with.
+	if rs.Low().Get() != 10 || rs.High().Get() != 90 {
+		t.Fatalf("seed: Low=%v High=%v, want 10/90", rs.Low().Get(), rs.High().Get())
 	}
-	// View→VM: a drag fires OnChange(lo,hi) → both observables update, and the
-	// prior handler still runs.
-	rs.OnChange(20, 80)
-	if low.Get() != 20 || high.Get() != 80 || priorCalls != 1 {
-		t.Fatalf("view→vm: low=%v high=%v prior=%d", low.Get(), high.Get(), priorCalls)
+	// View→VM: the widget Sets its own observables on a drag or key press.
+	rs.Low().Set(20)
+	rs.High().Set(80)
+	if low.Get() != 20 || high.Get() != 80 {
+		t.Fatalf("view→vm: low=%v high=%v, want 20/80", low.Get(), high.Get())
 	}
-	// VM→View: setting an observable pushes to the matching field.
+	// VM→View.
 	low.Set(5)
 	high.Set(95)
-	if rs.Low != 5 || rs.High != 95 {
-		t.Fatalf("vm→view: Low=%v High=%v, want 5/95", rs.Low, rs.High)
+	if rs.Low().Get() != 5 || rs.High().Get() != 95 {
+		t.Fatalf("vm→view: Low=%v High=%v, want 5/95", rs.Low().Get(), rs.High().Get())
 	}
 	if repaints == 0 {
 		t.Fatal("VM→View pushes should have requested repaints")
 	}
-	// Unbind restores the prior handler and detaches.
+	// Unbind detaches BOTH directions.
 	unbind()
 	low.Set(0)
-	if rs.Low != 5 {
-		t.Fatalf("after unbind Low changed to %v", rs.Low)
+	if rs.Low().Get() != 5 {
+		t.Fatalf("after unbind VM→View still live: Low=%v", rs.Low().Get())
 	}
-	rs.OnChange(1, 2) // only the prior handler now
-	if priorCalls != 2 || low.Get() != 0 && high.Get() != 95 {
-		t.Fatalf("after unbind: prior=%d low=%v high=%v", priorCalls, low.Get(), high.Get())
+	rs.High().Set(42)
+	if high.Get() != 95 {
+		t.Fatalf("after unbind View→VM still live: high=%v", high.Get())
 	}
 }
 
-func TestBindRangeNilPriorAndInvalidate(t *testing.T) {
-	// Covers the prev==nil and invalidate==nil branches.
+// TestBindRangeNormalisesThroughTheWidget pins the reason SetRange is called
+// after the links exist rather than before: Low().Set and High().Set do not
+// clamp, so an out-of-range, inverted ViewModel band must be corrected by the
+// widget and the correction must travel BACK, leaving both sides equal and
+// legal.
+func TestBindRangeNormalisesThroughTheWidget(t *testing.T) {
+	low := mvvm.NewObservable(140.0) // above Max, and above high
+	high := mvvm.NewObservable(-20.0)
+	rs := toolkit.NewRangeSlider(0, 100, 10, 90)
+	defer BindRange(low, high, rs, nil)()
+
+	if rs.Low().Get() != 0 || rs.High().Get() != 100 {
+		t.Fatalf("widget band not normalised: Low=%v High=%v, want 0/100",
+			rs.Low().Get(), rs.High().Get())
+	}
+	if low.Get() != 0 || high.Get() != 100 {
+		t.Fatalf("correction did not travel back: low=%v high=%v, want 0/100",
+			low.Get(), high.Get())
+	}
+}
+
+// TestBindRangeNilInvalidate covers the nil-invalidate branch.
+func TestBindRangeNilInvalidate(t *testing.T) {
 	low := mvvm.NewObservable(0.0)
 	high := mvvm.NewObservable(100.0)
 	rs := toolkit.NewRangeSlider(0, 100, 50, 50)
-	unbind := BindRange(low, high, rs, nil)
-	defer unbind()
-	rs.OnChange(10, 90) // prev is nil — must not panic
-	if low.Get() != 10 || high.Get() != 90 {
-		t.Fatalf("nil-prior view→vm: low=%v high=%v", low.Get(), high.Get())
-	}
+	defer BindRange(low, high, rs, nil)()
 	low.Set(25) // nil invalidate — must not panic
-	if rs.Low != 25 {
-		t.Fatalf("nil-invalidate push: Low=%v", rs.Low)
+	if rs.Low().Get() != 25 {
+		t.Fatalf("nil-invalidate push: Low=%v", rs.Low().Get())
+	}
+	rs.High().Set(75)
+	if high.Get() != 75 {
+		t.Fatalf("nil-invalidate view→vm: high=%v", high.Get())
 	}
 }
