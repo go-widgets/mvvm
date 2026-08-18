@@ -102,3 +102,41 @@ func BindList[T any](l *ObservableList[T], items *[]string, project func(T) stri
 	rebuild()
 	return l.Subscribe(func(ListEvent[T]) { rebuild() })
 }
+
+// BindTwoWay links two Observables of the same type so that a change to either
+// is reflected in the other, and returns an unbind detaching both directions.
+//
+// It is the adapter for widgets that expose their state AS an Observable rather
+// than as a value field plus a callback slot — the shape BindField takes. A
+// widget that owns an Observable has no field to seed and no hook to compose;
+// there are simply two properties that must agree, and the binding is symmetric
+// where BindField's is not.
+//
+// src is the source of truth at bind time: dst is seeded from it, matching
+// BindField's rule that the ViewModel wins over whatever the widget was
+// constructed with. Afterwards neither side is privileged.
+//
+// It is loop-free by the same mechanism as the rest of this package: Set skips
+// values equal to the current one, so the echo stops at the first hop. That
+// mechanism is the change test, so — as NewObservableEq documents — a two-way
+// binding over an Observable built with a nil eq would never settle. Give
+// anything bound this way a real equality function.
+func BindTwoWay[T any](src, dst *Observable[T], invalidate func()) (unbind func()) {
+	dst.Set(src.Get())
+	us := src.Subscribe(func(v T) {
+		dst.Set(v)
+		if invalidate != nil {
+			invalidate()
+		}
+	})
+	ud := dst.Subscribe(func(v T) {
+		src.Set(v)
+		if invalidate != nil {
+			invalidate()
+		}
+	})
+	return func() {
+		us()
+		ud()
+	}
+}
