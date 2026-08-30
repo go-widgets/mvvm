@@ -340,8 +340,9 @@ func TestBindTable_SortViaHeaderClick(t *testing.T) {
 	fx.table.OnEvent(toolkit.Event{Kind: toolkit.EventClick, X: 160, Y: 5})
 
 	// The Table flipped its own indicator...
-	if fx.table.SortColumn != colQty || !fx.table.SortAsc {
-		t.Fatalf("indicator = (col %d, asc %v), want (2, true)", fx.table.SortColumn, fx.table.SortAsc)
+	if fx.table.SortColumn().Get() != colQty || !fx.table.SortAsc().Get() {
+		t.Fatalf("indicator = (col %d, asc %v), want (2, true)",
+			fx.table.SortColumn().Get(), fx.table.SortAsc().Get())
 	}
 	// ...the binding set the query...
 	q := fx.store.Query()
