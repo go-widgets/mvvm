@@ -3,8 +3,8 @@ module github.com/go-widgets/mvvm
 go 1.27.1
 
 require (
-	github.com/go-widgets/data v0.1.0
-	github.com/go-widgets/toolkit v0.321.2
+	github.com/go-widgets/data v0.3.0
+	github.com/go-widgets/toolkit v0.326.0
 	github.com/go-widgets/tui v0.61.0
 )
 
