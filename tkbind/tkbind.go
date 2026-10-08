@@ -9,7 +9,11 @@
 // toolkit; the core mvvm package stays backend-free.
 //
 // The four in controls.go — [BindEntry], [BindSpin], [BindChoice], [BindCheck]
-// — are the ones an app reaches for first. Without them an app binds a text
+// — are the ones an app reaches for first, and cycle.go adds the two shapes
+// that look unbindable until they are written down: a [BindCycleValues] whose
+// table says what each position of a cycle button MEANS, and a [BindButton]
+// that gives a button a command, so that what may be pressed is decided once
+// rather than checked again inside every handler. Without them an app binds a text
 // box or a spin button by hand, and what hand-binding turns into is a
 // Subscribe that copies the value into a plain field plus a rebuild to get it
 // back, which is the field-copied-across-a-boundary that MVVM is for not
