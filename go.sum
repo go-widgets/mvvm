@@ -36,8 +36,8 @@ github.com/go-widgets/data v0.3.0 h1:svVFLhjCEIHxgfPS6wQQ6PP8R6m6CvWBBhYHmDZBk4E
 github.com/go-widgets/data v0.3.0/go.mod h1:cd2pxSoCdGX1luy4SlpX+LVsJGMXaqzZfgK85Q4Kr1c=
 github.com/go-widgets/painter v0.13.0 h1:xBPbopFuYfeDVbQKUKviU6HnP2mAhztJ+BpasahlJLU=
 github.com/go-widgets/painter v0.13.0/go.mod h1:IPRLqdUJuJX8sfuHeYLZCzjoLvA0ApbOlyIAVmguJDQ=
-github.com/go-widgets/toolkit v0.326.0 h1:F7otUDG1p9VaQXpgca9k2fQNSsAjqLjDGU/zAcKDm3Y=
-github.com/go-widgets/toolkit v0.326.0/go.mod h1:IfzBIAPNK6m9FGsEGgaEefyx8DZ1441HYP1WK8n74pM=
+github.com/go-widgets/toolkit v0.328.0 h1:S653IRgxnyPjR/+2mickkoGjDZq3TzG+ym+C3Li8Gpo=
+github.com/go-widgets/toolkit v0.328.0/go.mod h1:IfzBIAPNK6m9FGsEGgaEefyx8DZ1441HYP1WK8n74pM=
 github.com/go-widgets/tui v0.61.0 h1:DmT5TOpCrnXBnG6t1060BvsaHLyJXEM23DWH4SpuGt8=
 github.com/go-widgets/tui v0.61.0/go.mod h1:Y1CSyfhaqltz2D+khiAzUXWSyZPI03TvxaupubpsTIc=
 github.com/golang/protobuf v1.5.4 h1:i7eJL8qZTpSEXOPTxNKhASYpMn+8e5Q6AdndVa1dWek=
