@@ -32,6 +32,13 @@ jobs:
       - name: Test with coverage
         run: go test -coverprofile=coverage.out ./...
 
+      # Queue is the one type here used across goroutines: its test is only a
+      # test under the race detector.
+      - name: Race detector
+        env:
+          CGO_ENABLED: "1"
+        run: go test -race -count=1 ./...
+
       - name: Assert 100% statement coverage
         run: |
           total=$(go tool cover -func=coverage.out | awk 'END { gsub(/%/,"",$3); print $3 }')
