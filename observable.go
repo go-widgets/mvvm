@@ -10,8 +10,8 @@ package mvvm
 // other directly.
 //
 // Observable is intentionally NOT safe for concurrent use — mutate it on the UI
-// goroutine. For an async producer, hand the value to the app's refresh/queue
-// and Set it from the UI tick. Keeping it lock-free matches the single-threaded
+// goroutine. An async producer Posts to a [Queue] instead, which the host drains
+// on the UI goroutine. Keeping it lock-free matches the single-threaded
 // UI model and stays allocation-light.
 type Observable[T any] struct {
 	value     T

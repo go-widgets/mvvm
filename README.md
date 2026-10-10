@@ -61,6 +61,27 @@ mvvm.BindList(vm.Names, &list.Items, func(s string) string { return s }, repaint
 
 The **same `FormVM`** drives the pixel and the cell form verbatim.
 
+## Results from another goroutine — `Queue`
+
+Observables are not safe for concurrent use. A fetch, a timer or a file
+watcher that finishes on its own goroutine **posts** the update instead, and the
+host runs it on the UI goroutine at the start of the next frame:
+
+```go
+q := mvvm.NewQueue(func() { repainter.Repaint() }) // wake an idle window; any goroutine
+go func() {
+	shares, err := api.ListShares(ctx)
+	q.Post(func() { vm.setShares(shares, err) })
+}()
+// on the UI goroutine, before layout — e.g. in the root container's SetBounds:
+q.Drain()
+```
+
+`Drain` runs what was posted so far, in order. Anything posted while it runs
+waits for the next frame, so a function that posts itself cannot hold the UI
+goroutine. go-widgets/window's `Repainter` is the wake on every back-end that
+has one.
+
 ## Backend adapters
 
 The core package binds any widget whose value + change-callback fit

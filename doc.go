@@ -31,8 +31,9 @@
 // # Threading
 //
 // The primitives are not safe for concurrent use. Mutate observables on the UI
-// goroutine; for an async producer, hand the value to the app's refresh queue
-// and Set it from the UI tick.
+// goroutine; an async producer Posts to a [Queue], which the host drains on the
+// UI goroutine at the start of a frame, and whose wake asks an idle window for
+// that frame.
 //
 // # A form in ~10 lines
 //
