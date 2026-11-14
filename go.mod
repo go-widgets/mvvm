@@ -4,7 +4,7 @@ go 1.27.2
 
 require (
 	github.com/go-widgets/data v0.4.0
-	github.com/go-widgets/toolkit v0.356.0
+	github.com/go-widgets/toolkit v0.374.11
 	github.com/go-widgets/tui v0.62.0
 )
 
@@ -21,6 +21,7 @@ require (
 	github.com/go-typeset/bidi v0.3.1 // indirect
 	github.com/go-widgets/painter v0.17.0 // indirect
 	github.com/go-widgets/textinput v0.1.0 // indirect
+	github.com/go-widgets/vcs v0.1.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/term v0.47.0 // indirect
 )
